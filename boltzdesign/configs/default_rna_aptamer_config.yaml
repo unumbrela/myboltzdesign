@@ -1,0 +1,66 @@
+# RNA Aptamer Design Configuration
+# Optimized for designing RNA aptamers that bind to protein/small molecule targets
+
+binder_chain: A
+design_algorithm: 3stages
+disconnect_feats: true
+disconnect_pairformer: false
+distogram_only: true
+
+# Softmax temperature parameters
+e_soft: 0.8
+e_soft_1: 0.8
+e_soft_2: 1.0
+
+# Iteration parameters - increased for nucleic acid optimization
+hard_iteration: 5
+pre_iteration: 40
+soft_iteration: 100
+soft_iteration_1: 60
+soft_iteration_2: 60
+temp_iteration: 60
+semi_greedy_steps: 3
+
+# Learning rates - higher for aptamer design
+learning_rate: 0.15
+learning_rate_pre: 1.2
+
+# Length parameters - typical aptamer length range
+# RNA aptamers can be slightly longer due to more complex secondary structures
+length_max: 100
+length_min: 20
+
+# Secondary structure parameters
+# Set to 0.0 for RNA (no helix preference like proteins)
+helix_loss_max: 0.0
+helix_loss_min: 0.0
+
+# Contact parameters - increased for stronger binding
+increasing_contact_over_itr: false
+inter_chain_cutoff: 18.0
+intra_chain_cutoff: 12.0
+num_inter_contacts: 4    # Increased for aptamer specificity
+num_intra_contacts: 3    # Compact structure formation
+
+# Optimization settings
+mask_ligand: false
+optimize_contact_per_binder_pos: true
+optimizer_type: SGD
+pocket_conditioning: true
+set_train: true
+use_temp: true
+
+# MSA settings
+msa_max_seqs: 4096
+
+# Additional parameters
+recycling_steps: 1
+noise_scaling: 0.1
+
+# Notes:
+# - RNA aptamers typically range from 20-100 nucleotides
+# - RNA can form more complex 3D structures than DNA (e.g., hairpins, loops)
+# - Higher num_inter_contacts ensures specific target binding
+# - No helix loss as RNA structure is fundamentally different from proteins
+# - Increased iterations to allow thorough sequence space exploration
+# - RNA aptamers often have higher affinity than DNA aptamers due to 2'-OH group

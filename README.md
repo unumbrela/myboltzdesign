@@ -1,9 +1,10 @@
 # BoltzDesign1 🧬
 
-**BoltzDesign1** is a molecular design tool powered by the Boltz model for designing protein-protein interactions and biomolecular complexes.
+**BoltzDesign1** is a molecular design tool powered by the Boltz model for designing protein-protein interactions, biomolecular complexes, **and now DNA/RNA aptamers**.
 
-> 📄 **Paper**: [BoltzDesign1: AI-Powered Molecular Design](https://www.biorxiv.org/content/10.1101/2025.04.06.647261v1)  
+> 📄 **Paper**: [BoltzDesign1: AI-Powered Molecular Design](https://www.biorxiv.org/content/10.1101/2025.04.06.647261v1)
 > 🚀 **Colab**: https://colab.research.google.com/github/yehlincho/BoltzDesign1/blob/main/Boltzdesign1.ipynb
+> 🧬 **NEW**: [Aptamer Design Guide](APTAMER_DESIGN_GUIDE.md)
 
 ---
 
@@ -35,15 +36,45 @@ The setup script will automatically:
 
 ---
 
+## 🧬 NEW: Aptamer Design
+
+BoltzDesign1 now supports **DNA and RNA aptamer design**! Design nucleic acid binders for:
+- 🎯 Protein targets
+- 💊 Small molecules
+- ⚛️ Metal ions
+- 🧬 Nucleic acids
+
+### Quick Aptamer Examples
+
+**DNA Aptamer for Protein:**
+```bash
+python boltzdesign.py --target_name 1HAO --target_type protein --pdb_target_ids A \
+  --binder_type dna --length_min 30 --length_max 60 --design_samples 10
+```
+
+**RNA Aptamer for Small Molecule:**
+```bash
+python boltzdesign.py --target_name ATP --target_type small_molecule \
+  --custom_target_input "C1=NC(=C2C(=N1)N(C=N2)C3C(C(C(O3)COP(=O)(O)OP(=O)(O)OP(=O)(O)O)O)O)N" \
+  --binder_type rna --length_min 25 --length_max 50 --design_samples 15
+```
+
+📖 **Full Guide**: See [APTAMER_DESIGN_GUIDE.md](APTAMER_DESIGN_GUIDE.md) for detailed instructions and examples.
+
+---
+
 ## Run Code End-to-End
 Run the complete pipeline from BoltzDesign to LigandMPNN/ProteinMPNN redesign and AlphaFold3 cross-validation.
 
-
-Examle for small molecule:
+Example for small molecule:
+```bash
 python boltzdesign.py --target_name 7v11 --target_type small_molecule --target_mols OQO --gpu_id 0 --design_samples 2 --suffix 1
+```
 
-Example for DNA/RNA PDB design:
+Example for DNA/RNA PDB target design:
+```bash
 python boltzdesign.py --target_name 5zmc --target_type dna --pdb_target_ids C,D --gpu_id 0 --design_samples 5 --suffix 1
+```
 
 If you want to use your custom PDB file:
 python boltzdesign.py --target_name 7v11 --pdb_path your_pdb_path --target_type small_molecule --target_mols OQO --gpu_id 0 --design_samples 2 --suffix own
