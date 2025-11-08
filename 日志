@@ -1,0 +1,7 @@
+python boltzdesign.py --target_name 5zmc --target_type dna --pdb_target_ids C,D --gpu_id 0 --design_samples 5 --suffix 1
+Filtering high confidence designs...
+5zmc_results_itr5_length157_model_0_2 length: 157 complex_plddt: 0.54 iptm: 0.34
+5zmc_results_itr3_length163_model_0_2 length: 163 complex_plddt: 0.46 iptm: 0.17
+5zmc_results_itr5_length157_model_0_1 length: 157 complex_plddt: 0.48 iptm: 0.49
+5zmc_results_itr3_length163_model_0_1 length: 163 complex_plddt: 0.46 iptm: 0.22
+Error: No LigandMPNN/ProteinMPNN redesigned designs passed the confidence thresholds
