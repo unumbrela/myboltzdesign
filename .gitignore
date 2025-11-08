@@ -44,7 +44,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
-
+model_params
 
 
 # 虚拟环境 (Virtual Environments)
