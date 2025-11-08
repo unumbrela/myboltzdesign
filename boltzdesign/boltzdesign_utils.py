@@ -147,6 +147,33 @@ chain_to_number = {
     'I': 8,
     'J': 9,
 }
+
+def get_binder_type(data, binder_chain):
+    """
+    Get the molecular type of the binder chain (protein, dna, or rna).
+
+    Args:
+        data: YAML data dictionary
+        binder_chain: Chain ID of the binder
+
+    Returns:
+        str: Binder type ('protein', 'dna', or 'rna')
+    """
+    binder_seq_data = data['sequences'][chain_to_number[binder_chain]]
+    return list(binder_seq_data.keys())[0]
+
+def set_binder_sequence(data, binder_chain, sequence):
+    """
+    Set the sequence of the binder chain, automatically detecting its type.
+
+    Args:
+        data: YAML data dictionary
+        binder_chain: Chain ID of the binder
+        sequence: Sequence string to set
+    """
+    binder_type = get_binder_type(data, binder_chain)
+    data['sequences'][chain_to_number[binder_chain]][binder_type]['sequence'] = sequence
+
 def visualize_training_history(best_batch, loss_history, sequence_history, distogram_history, length, binder_chain='A', save_dir=None, save_filename=None):
     """
     Visualize training history including loss plot, distogram animation, and sequence evolution animation.
@@ -500,7 +527,11 @@ def boltz_hallucination(
     with yaml_path.open("r") as file:
         data = yaml.safe_load(file)
 
-    data['sequences'][chain_to_number[binder_chain]]['protein']['sequence'] = 'X'*length
+    # Set initial sequence based on binder type (protein: X, dna/rna: A)
+    binder_type = get_binder_type(data, binder_chain)
+    initial_char = 'X' if binder_type == 'protein' else 'A'
+    set_binder_sequence(data, binder_chain, initial_char * length)
+
     name = yaml_path.stem
     target = parse_boltz_schema(name, data, ccd_lib)
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -942,7 +973,7 @@ def boltz_hallucination(
 
         best_logits = batch['res_type_logits']
         best_seq = ''.join([alphabet[i] for i in torch.argmax(batch['res_type'][batch['entity_id']==chain_to_number[binder_chain],:], dim=-1).detach().cpu().numpy()])
-        data['sequences'][chain_to_number[binder_chain]]['protein']['sequence'] = best_seq
+        set_binder_sequence(data, binder_chain, best_seq)
         return batch['res_type'].detach().cpu().numpy(), plots, loss_history, distogram_history, sequence_history, traj_coords_list, traj_plddt_list
 
     boltz_model.eval()
@@ -974,7 +1005,7 @@ def boltz_hallucination(
 
     best_logits = best_batch['res_type_logits']
     best_seq = ''.join([alphabet[i] for i in torch.argmax(best_batch['res_type'][best_batch['entity_id']==chain_to_number[binder_chain],:], dim=-1).detach().cpu().numpy()])
-    data['sequences'][chain_to_number[binder_chain]]['protein']['sequence'] = best_seq
+    set_binder_sequence(data, binder_chain, best_seq)
 
     data_apo = copy.deepcopy(data)  # This handles all types of values correctly
     data_apo.pop('constraints', None)  # Remove constraints if they exist
@@ -1005,10 +1036,10 @@ def boltz_hallucination(
             i_prob = np.ones(length) if plddt is None else torch.maximum(1-plddt,torch.tensor(0))
             i_prob = i_prob.detach().cpu().numpy() if torch.is_tensor(i_prob) else i_prob
             mutated_sequence = _mutate(prev_sequence, best_logits, i_prob)
-            data['sequences'][chain_to_number[binder_chain]]['protein']['sequence'] = mutated_sequence
+            set_binder_sequence(data, binder_chain, mutated_sequence)
             best_batch, _, _, _ = _update_batches(data, data_apo)
             output = _run_model(boltz_model, best_batch, predict_args)
-            
+
             iptm = output['iptm'].detach().cpu().numpy()
             confidence_score.append(iptm)
             mutated_sequence_ls.append(mutated_sequence)
@@ -1016,18 +1047,18 @@ def boltz_hallucination(
 
         best_id = np.argmax(confidence_score)
         best_iptm = confidence_score[best_id]
-        
+
         if best_iptm > prev_iptm:
             best_seq = mutated_sequence_ls[best_id]
             for seq_data in [data, data_apo]:
-                seq_data['sequences'][chain_to_number[binder_chain]]['protein']['sequence'] = best_seq
+                set_binder_sequence(seq_data, binder_chain, best_seq)
             print(f"Step {step}, Epoch {best_id}, Update sequence, iptm {best_iptm}, previous iptm {prev_iptm}")
             print(f"Update sequence {best_seq}")
             prev_iptm = best_iptm
             prev_sequence = best_seq
         else:
             for seq_data in [data, data_apo]:
-                seq_data['sequences'][chain_to_number[binder_chain]]['protein']['sequence'] = prev_sequence
+                set_binder_sequence(seq_data, binder_chain, prev_sequence)
 
         best_batch, best_batch_apo, best_structure, best_structure_apo = _update_batches(data, data_apo)
 
@@ -1263,8 +1294,7 @@ def run_boltz_design(
                     shutil.copy2(yaml_path, result_yaml)
                     with open(result_yaml, 'r') as f:
                         data = yaml.safe_load(f)
-                    chain_num = chain_to_number[config['binder_chain']]
-                    data['sequences'][chain_num]['protein']['sequence'] = best_sequence
+                    set_binder_sequence(data, config['binder_chain'], best_sequence)
                     data.pop('constraints', None)
 
                     # Convert any MSA files from npz to a3m format
