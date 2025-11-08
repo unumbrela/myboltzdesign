@@ -1,0 +1,72 @@
+# =========================================
+# 深度学习和模型权重 (Deep Learning & Model Weights)
+# =========================================
+# 忽略 PyTorch 权重文件
+*.pt
+*.pth
+
+# 忽略 TensorFlow / Keras 权重文件
+*.h5
+*.hdf5
+*.pb
+*.ckpt
+*.ckpt.index
+*.ckpt.meta
+*.data-00000-of-00001
+
+# 忽略其他模型格式
+*.onnx
+*.safetensors
+
+
+
+# =========================================
+# 大型数据集 (Large Datasets)
+# =========================================
+# 避免上传原始数据或处理过的数据
+# 建议将数据（如 .csv, .jpg, .zip）单独存储
+# 如果数据必须在项目中，请取消注释并指定
+# data/
+# *.csv
+# *.zip
+# *.tar.gz
+# *.jpg
+# *.png
+
+# =NVIDIA
+# CUDA 诊断
+*.nvvp
+
+# =========================================
+# Python 基础 (Python General)
+# =========================================
+# 字节码和编译文件
+__pycache__/
+*.py[cod]
+*$py.class
+
+
+
+# 虚拟环境 (Virtual Environments)
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+
+
+
+# =========================================
+# 编辑器和 IDE (Editors & IDEs)
+# =========================================
+# PyCharm
+.idea/
+
+# VSCode
+.vscode/
+
+
+

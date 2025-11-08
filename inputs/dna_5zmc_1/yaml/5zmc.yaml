@@ -1,0 +1,15 @@
+version: 1
+sequences:
+- protein:
+    id:
+    - A
+    sequence: XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    msa: empty
+- dna:
+    id:
+    - B
+    sequence: CGGGGACCCGGAAGGG
+- dna:
+    id:
+    - C
+    sequence: GCCCTTCCGGGTCCCC
