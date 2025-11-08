@@ -1,0 +1,14 @@
+version: 1
+sequences:
+- dna:
+    id:
+    - A
+    sequence: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+- dna:
+    id:
+    - B
+    sequence: CGGGGACCCGGAAGGG
+- dna:
+    id:
+    - C
+    sequence: GCCCTTCCGGGTCCCC
