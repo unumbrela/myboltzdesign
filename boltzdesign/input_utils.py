@@ -235,9 +235,37 @@ def process_design_constraints(target_id_map: dict, modifications: str, modifica
     
     return constraints, modifications
     
-def build_chain_dict(targets: list, target_type: str, binder_id: str, constraints: dict = None, modifications: dict = None, modification_target: str = None) -> dict:
-    # Build chain dictionary
-    chain_dict = {binder_id: {'type': 'protein', 'sequence': 'X' * 100}}
+def build_chain_dict(targets: list, target_type: str, binder_id: str, binder_type: str = 'protein', binder_length: int = 100, constraints: dict = None, modifications: dict = None, modification_target: str = None) -> dict:
+    """
+    Build chain dictionary for YAML generation.
+
+    Args:
+        targets: List of target sequences/molecules
+        target_type: Type of target ('protein', 'dna', 'rna', 'small_molecule', 'metal')
+        binder_id: Chain ID for the binder
+        binder_type: Type of binder molecule ('protein', 'dna', 'rna', 'peptide')
+        binder_length: Initial length of the binder sequence
+        constraints: Optional constraints
+        modifications: Optional modifications
+        modification_target: Optional modification target
+
+    Returns:
+        tuple: (chain_dict, yaml_target_ids)
+    """
+    # Build chain dictionary based on binder type
+    if binder_type == 'dna':
+        # Initialize with adenine for DNA aptamers
+        chain_dict = {binder_id: {'type': 'dna', 'sequence': 'A' * binder_length}}
+    elif binder_type == 'rna':
+        # Initialize with adenine for RNA aptamers
+        chain_dict = {binder_id: {'type': 'rna', 'sequence': 'A' * binder_length}}
+    elif binder_type == 'peptide':
+        # Initialize with glycine for peptide binders (flexible)
+        chain_dict = {binder_id: {'type': 'protein', 'sequence': 'G' * binder_length}}
+    else:  # protein (default)
+        # Initialize with unknown residue X for protein binders
+        chain_dict = {binder_id: {'type': 'protein', 'sequence': 'X' * binder_length}}
+
     # Map target types to their YAML representation
     type_map = {
         'protein': {'type': 'protein', 'sequence': True, 'msa': 'empty'},
@@ -268,26 +296,28 @@ def build_chain_dict(targets: list, target_type: str, binder_id: str, constraint
         
     return chain_dict, yaml_target_ids
 
-def generate_yaml_for_target_binder(name:str, target_type: str, targets: list, config="", binder_id='A', constraints: dict = None, modifications: dict = None, modification_target: str = None, use_msa: bool = False) -> dict:
+def generate_yaml_for_target_binder(name:str, target_type: str, targets: list, config="", binder_id='A', binder_type: str = 'protein', binder_length: int = 100, constraints: dict = None, modifications: dict = None, modification_target: str = None, use_msa: bool = False) -> dict:
     """
-    Generate YAML content for a small molecule binder with multiple targets and create the YAML file.
-    
+    Generate YAML content for a binder with multiple targets and create the YAML file.
+
     Args:
         name (str): Name/PDB code for the target
-        type (str): Type of ligand ('small_molecule', 'dna', 'rna', 'metal', 'protein')
+        target_type (str): Type of target ('small_molecule', 'dna', 'rna', 'metal', 'protein')
         targets (list): List of target information (SMILES, sequences, or CCD codes)
-        binder_id (str): ID of the binder
         config (Config): Configuration object
+        binder_id (str): Chain ID of the binder
+        binder_type (str): Type of binder molecule ('protein', 'dna', 'rna', 'peptide')
+        binder_length (int): Initial length of the binder sequence
         constraints (dict): Optional constraints to add to YAML
         modifications (dict): Optional modifications to add to YAML
         modification_target (str): Optional modification target to add to YAML
         use_msa (bool): Whether to use MSA for proteins
-        
+
     Returns:
         tuple: YAML content dictionary and output path
-    """ 
+    """
 
-    chain_dict, yaml_target_ids = build_chain_dict(targets, target_type, binder_id, constraints, modifications, modification_target)
+    chain_dict, yaml_target_ids = build_chain_dict(targets, target_type, binder_id, binder_type, binder_length, constraints, modifications, modification_target)
     # Build sequences list for YAML
     sequences = []
     for chain_id, info in chain_dict.items():

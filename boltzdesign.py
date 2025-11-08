@@ -86,6 +86,10 @@ Examples:
                         help='Custom target IDs (comma-separated, e.g., "A,B")')
     parser.add_argument('--binder_id', type=str, default='A',
                         help='Binder chain ID')
+    parser.add_argument('--binder_type', type=str,
+                        choices=['protein', 'dna', 'rna', 'peptide'],
+                        default='protein',
+                        help='Type of binder molecule to design (protein, dna, rna, or peptide)')
     parser.add_argument('--use_msa', type=str2bool, default=False,
                         help='Use MSA (if False, runs in single-sequence mode)')
     parser.add_argument('--msa_max_seqs', type=int, default=4096,
@@ -274,29 +278,44 @@ def load_boltz_model(args, device):
     boltz_model.train()
     return boltz_model, predict_args
 
-def load_design_config(target_type, work_dir):
+def load_design_config(target_type, binder_type, work_dir):
     """
-    Load design configuration based on target type.
+    Load design configuration based on target type and binder type.
     Modified so that config files are always loaded from the script's directory,
     instead of using work_dir/boltzdesign/configs.
+
+    Args:
+        target_type: Type of target molecule
+        binder_type: Type of binder molecule ('protein', 'dna', 'rna', 'peptide')
+        work_dir: Working directory
+
+    Returns:
+        dict: Configuration dictionary
     """
     # Determine the directory where this script (boltzdesign.py) lives:
     script_dir = os.path.dirname(os.path.abspath(__file__))
     # The configs directory is under script_dir/boltzdesign/configs/
     config_dir = os.path.join(script_dir, 'boltzdesign', 'configs')
-    
-    if target_type=='small_molecule':
-        config_path = os.path.join(config_dir, "default_sm_config.yaml")
-    elif target_type=='metal':
-        config_path = os.path.join(config_dir, "default_metal_config.yaml")
-    elif target_type=='dna' or target_type=='rna':
-        config_path = os.path.join(config_dir, "default_na_config.yaml")
 
-    elif target_type=='protein':
+    # For aptamer design (DNA/RNA binders), use specialized configs
+    if binder_type in ['dna', 'rna']:
+        config_path = os.path.join(config_dir, f"default_{binder_type}_aptamer_config.yaml")
+        print(f"Loading {binder_type.upper()} aptamer design config")
+    elif binder_type == 'peptide':
+        config_path = os.path.join(config_dir, "default_pep_config.yaml")
+        print("Loading peptide binder design config")
+    # For protein binders, select config based on target type
+    elif target_type == 'small_molecule':
+        config_path = os.path.join(config_dir, "default_sm_config.yaml")
+    elif target_type == 'metal':
+        config_path = os.path.join(config_dir, "default_metal_config.yaml")
+    elif target_type in ['dna', 'rna']:
+        config_path = os.path.join(config_dir, "default_na_config.yaml")
+    elif target_type == 'protein':
         config_path = os.path.join(config_dir, "default_ppi_config.yaml")
     else:
         raise ValueError(f"Unknown target type: {target_type}")
-    
+
     print(f"Loading config from: {config_path}")
     with open(config_path, 'r') as f:
         config = yaml.safe_load(f)
@@ -684,11 +703,13 @@ def generate_yaml_config(args, config_obj):
         target = target_inputs or [args.target_name]
 
     return generate_yaml_for_target_binder(
-        args.target_name, 
+        args.target_name,
         args.target_type,
         target,
         config=config_obj,
         binder_id=args.binder_id,
+        binder_type=args.binder_type,
+        binder_length=args.length_min,  # Use length_min as initial binder length
         constraints=constraints,
         modifications=modifications['data'] if modifications else None,
         modification_target=modifications['target'] if modifications else None,
@@ -698,7 +719,7 @@ def generate_yaml_config(args, config_obj):
 def setup_pipeline_config(args):
     """Setup pipeline configuration"""
     work_dir = args.work_dir or os.getcwd()
-    config = load_design_config(args.target_type, work_dir)
+    config = load_design_config(args.target_type, args.binder_type, work_dir)
     return update_config_with_args(config, args)
 
 def setup_output_directories(args):
